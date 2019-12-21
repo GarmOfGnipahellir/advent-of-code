@@ -16,6 +16,9 @@ class Line:
         self.start = start
         self.end = end
 
+        self.min = [min(start[0], end[0]), min(start[1], end[1])]
+        self.max = [max(start[0], end[0]), max(start[1], end[1])]
+
         if dir == 'U' or dir == 'D':
             self.axis = Axis.VERTICAL
         elif dir == 'R' or dir == 'L':
@@ -24,7 +27,11 @@ class Line:
     def intersect(self, other):
         if self.axis == other.axis:
             return None
-        
+
+        v = self if self.axis == Axis.VERTICAL else other
+        h = self if self.axis == Axis.HORIZONTAL else other
+
+        if v.min[0] <= h.min[0] and v.max[0] >= h.max[0]:
 
     def __str__(self):
         return f'{self.start} -> {self.end}: {self.axis}'
@@ -54,3 +61,5 @@ for i, commands in enumerate(turtles):
         wires[i].append(line)
 
         start = end
+
+print(wires[0][0].intersect(wires[1][0]))
