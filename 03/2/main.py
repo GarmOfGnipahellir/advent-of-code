@@ -12,9 +12,13 @@ class Axis(Enum):
 
 
 class Line:
-    def __init__(self, start, end, dir):
+    def __init__(self, start, end, dir, dist, parent):
+        self.parent = parent
+
         self.start = start
         self.end = end
+
+        self.dist = dist
 
         self.min = [min(start[0], end[0]), min(start[1], end[1])]
         self.max = [max(start[0], end[0]), max(start[1], end[1])]
@@ -57,7 +61,11 @@ for i, commands in enumerate(turtles):
         elif dir == 'U' or dir == 'D':
             end[1] += dist
 
-        line = Line(start, end, dir)
+        parent = None
+        if j > 0:
+            parent = wires[i][j-1]
+
+        line = Line(start, end, dir, abs(dist), parent)
 
         print(' ', command, line)
         wires[i].append(line)
@@ -69,7 +77,16 @@ for line1 in wires[0]:
     for line2 in wires[1]:
         cross = line1.intersect(line2)
         if cross != None and cross != [0, 0]:
-            dist = abs(cross[0]) + abs(cross[1])
-            if dist < closest:
-                closest = dist
+            dist1 = abs(cross[0] - line1.start[0] + cross[1] - line1.start[1])
+            dist2 = abs(cross[0] - line2.start[0] + cross[1] - line2.start[1])
+            while line1.parent != None:
+                line1 = line1.parent
+                dist1 += line1.dist
+            while line2.parent != None:
+                line2 = line2.parent
+                dist2 += line2.dist
+            
+            if dist1 + dist2 < closest:
+                closest = dist1 + dist2
+
 print(closest)
