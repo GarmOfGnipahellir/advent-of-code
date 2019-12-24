@@ -1,4 +1,4 @@
-from math import floor, copysign
+from math import floor, copysign, sqrt
 from os import path
 __dir__ = path.dirname(__file__)
 
@@ -29,38 +29,33 @@ class AsteroidMap:
     def get(self, x, y):
         return self.data[y][x]
 
+    # line
+    # y = mx
+    # x = y/m
+    # slope is
+    # y2 - y1 / x2 - x1
     def los_map(self, origin, blocker):
         data = [[1 for _ in row] for y, row in enumerate(self.data)]
-        height = len(data)
-        width = len(data[0])
 
-        delta = [blocker[0] - origin[0], blocker[1] - origin[1]]
-
-        new_delta = [delta[0], delta[1]]
-        if delta[1] != 0:
-            ratio = abs(delta[0] / delta[1])
-            if ratio - floor(ratio) == 0 and ratio != 0:
-                new_delta = [int(ratio), 1]
-        elif delta[0] != 0:
-            ratio = abs(delta[1] / delta[0])
-            if ratio - floor(ratio) == 0 and ratio != 0:
-                new_delta = [1, int(ratio)]
-        
-        if delta[1] == 0:
-            new_delta[0] = 1
-        elif delta[0] == 0: 
-            new_delta[1] = 1
-        
-        new_delta = [
-            int(copysign(new_delta[0], delta[0])), 
-            int(copysign(new_delta[1], delta[1])),
+        block_delta = [
+            blocker[0] - origin[0],
+            blocker[1] - origin[1]
         ]
-        delta = new_delta
 
-        pos = [blocker[0] + delta[0], blocker[1] + delta[1]]
-        while pos[0] < width and pos[1] < height and pos[0] >= 0 and pos[1] >= 0:
-            data[pos[1]][pos[0]] = 0
-            pos = [pos[0] + delta[0], pos[1] + delta[1]]
+        block_dist = sqrt(block_delta[0]**2 + block_delta[1]**2)
+
+        for y, row in enumerate(self.data):
+            for x, value in enumerate(row):
+                delta = [x - origin[0], y - origin[1]]
+                dist = sqrt(delta[0]**2 + delta[1]**2)
+
+                if dist > block_dist:
+                    dot = (
+                        ((block_delta[0] / block_dist) * (delta[0] / dist)) +
+                        ((block_delta[1] / block_dist) * (delta[1] / dist))
+                    )
+                    if dot > 0.999999:
+                        data[y][x] = 0
 
         return data
 
@@ -71,7 +66,7 @@ class AsteroidMap:
                 continue
             los_maps.append(self.los_map(origin, blocker))
         return AsteroidMap.combine_los_maps(los_maps)
-    
+
     def remove_los_blocked(self, origin, los_map):
         data = [['.' for _ in row] for y, row in enumerate(self.data)]
         for y, row in enumerate(los_map):
@@ -84,7 +79,7 @@ class AsteroidMap:
         AsteroidMap.print_data(self.data)
 
 
-with open(f'{__dir__}/ex.4', 'r') as f:
+with open(f'{__dir__}/in', 'r') as f:
     asteroid_map = AsteroidMap(f.readlines())
     asteroid_map.print()
 
@@ -107,7 +102,7 @@ with open(f'{__dir__}/ex.4', 'r') as f:
         if count > record:
             record = count
             record_pos = asteroid
-    
+
     print()
     print(record_pos)
     print(record)
