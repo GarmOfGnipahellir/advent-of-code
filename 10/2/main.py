@@ -1,12 +1,39 @@
-from math import floor, copysign, sqrt
+from math import sqrt, atan2, pi
 from os import path
 __dir__ = path.dirname(__file__)
 
 
+def calc_angle(origin, target):
+    delta = [
+        target[0] - origin[0],
+        target[1] - origin[1]
+    ]
+
+    if delta[0] == 0:
+        if delta[1] > 0:
+            angle = pi
+        else:
+            angle = 0
+    elif delta[1] == 0:
+        if delta[0] > 0:
+            angle = pi / 2
+        else:
+            angle = pi + (pi / 2)
+    else:
+        angle = atan2(delta[0], -delta[1])
+        if delta[0] < 0 and delta[1] > 0:
+            angle = abs(angle - (pi / 2))
+        elif delta[0] < 0 and delta[1] < 0:
+            angle = angle + (pi * 2)
+    
+    return angle
+
 class AsteroidMap:
     def __init__(self, lines):
-        self.data = [list(l.strip()) for l in lines]
+        self.set_data([list(l.strip()) for l in lines])
 
+    def set_data(self, data):
+        self.data = data
         self.asteroids = []
         for y, row in enumerate(self.data):
             for x, value in enumerate(row):
@@ -70,34 +97,34 @@ class AsteroidMap:
                     data[y][x] = '#'
         return data
 
+    def visible_map(self, origin):
+        los_map = self.combined_los_map(pos)
+        return self.remove_los_blocked(pos, los_map)
+
+    def order_by_angle(self, pos):
+        result = self.asteroids.copy()
+        result.sort(key=lambda x: calc_angle(pos, x))
+        for i, asteroid in enumerate(result):
+            if i < 9:
+                self.data[asteroid[1]][asteroid[0]] = i+1
+        return result
+
     def print(self):
         AsteroidMap.print_data(self.data)
 
 
 with open(f'{__dir__}/in', 'r') as f:
-    asteroid_map = AsteroidMap(f.readlines())
+    lines = f.readlines()
+    pos = [int(lines[0].strip()), int(lines[1].strip())]
+    asteroid_map = AsteroidMap(lines[2::])
     asteroid_map.print()
-
-    record = 0
-    record_pos = [-1, -1]
-    for asteroid in asteroid_map.asteroids:
-        print()
-        los_map = asteroid_map.combined_los_map(asteroid)
-        los_blocked = asteroid_map.remove_los_blocked(asteroid, los_map)
-        AsteroidMap.print_data(los_blocked)
-
-        count = 0
-        for y, row in enumerate(los_blocked):
-            for x, value in enumerate(row):
-                if value == '#':
-                    count += 1
-        print(asteroid)
-        print(count)
-
-        if count > record:
-            record = count
-            record_pos = asteroid
-
     print()
-    print(record_pos)
-    print(record)
+    asteroid_map.set_data(asteroid_map.visible_map(pos))
+    asteroid_map.print()
+    print()
+    ordered = asteroid_map.order_by_angle(pos)
+    asteroid_map.print()
+    print()
+    answer = ordered[199]
+    print(answer)
+    print(answer[0] * 100 + answer[1])
