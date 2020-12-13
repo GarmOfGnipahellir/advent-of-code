@@ -1,4 +1,6 @@
-inp = open("./ex01", mode="r").readlines()
+from math import pow
+
+inp = open("./ex00", mode="r").readlines()
 inp = [int(line.strip()) for line in inp]
 
 chain = inp.copy()
@@ -19,25 +21,58 @@ def is_valid(lst):
             return False
     return True
 
-def recursive_test(lst, valid):
-    if len(lst) <= 3:
-        return 0
+def recursive_remove(lst, valid):
+    for i in range(len(lst) - 2, 0, -1):
+        pre = lst[i-1]
+        nxt = lst[i+1]
 
-    n = 0
+        if nxt - pre <= 3:
+            new_lst = lst.copy()
+            new_lst.remove(new_lst[i])
+            if new_lst not in valid:
+                valid.append(new_lst)
+                recursive_remove(new_lst, valid)
 
-    for i in range(1, len(lst) - 1):
-        test = lst.copy()
-        test.remove(test[i])
+# valid = [chain]
+# recursive_remove(chain, valid)
+# print(len(valid))
 
-        if is_valid(test):
-            if test not in valid:
-                valid.append(test)
-                n += 1
-                print(test)
-        
-        n += recursive_test(test, valid)
+removable = []
+for i in range(1, len(chain)-1):
+    pre = chain[i-1]
+    nxt = chain[i+1]
+
+    if nxt - pre <= 3:
+        removable.append(i)
+print(removable)
+
+diffs = []
+for i in removable:
+    pre = chain[i-1]
+    cur = chain[i]
+    nxt = chain[i+1]
     
-    return n
+    diff = max(cur-pre, nxt-cur)
 
-valid = []
-print(recursive_test(chain, valid) + 1)
+    diffs.append(diff)
+print(diffs)
+
+pairs = 0
+for i in range(len(removable)-1):
+    cur = chain[i]
+    nxt = chain[i+1]
+    if cur + 1 == nxt and (diffs[i] == 1 and diffs[i+1] == 1):
+        pairs += 1
+
+print(len(removable) + pairs)
+
+# ans = 0
+# from itertools import compress, product
+# combinations = ( set(compress(removable, mask)) for mask in product(*[[0,1]]*len(removable)) )
+# for comb in combinations:
+#     new_lst = chain.copy()
+#     for i in comb:
+#         new_lst.remove(chain[i])
+#     if is_valid(new_lst):
+#         ans += 1
+# print(ans)
