@@ -1,7 +1,7 @@
 use shared::read_string;
 
 fn main() {
-    let contents = read_string("day_01/data/01_input.txt").unwrap();
+    let contents = read_string("day_01/data/input.txt").unwrap();
 
     let answer: i64 = contents
         .split('\n')
