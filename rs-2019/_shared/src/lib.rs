@@ -1,3 +1,5 @@
+pub mod intcode;
+
 use std::{
     env::current_exe,
     fs::File,
