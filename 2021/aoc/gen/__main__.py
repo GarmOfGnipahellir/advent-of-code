@@ -115,6 +115,9 @@ def main():
         "../../tests/test_{}.py"
     ]
 
+    example_path = "../{}/resources/example.txt".format(module_name)
+    write_file(example_path, "")
+    
     year, session = get_env()
     input_path = "../{}/resources/input.txt".format(module_name)
     gen_input(input_path, year, day, session)
