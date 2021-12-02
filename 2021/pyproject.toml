@@ -2,7 +2,7 @@
 name = "aoc"
 version = "0.1.0"
 description = "Python template for Advent of Code event"
-authors = ["Leonardo Gago <ljgago@gmail.com>"]
+authors = ["Leonardo Gago <ljgago@gmail.com>", "Henrik Melsom <melsom.henrik@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
