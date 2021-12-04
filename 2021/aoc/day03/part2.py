@@ -26,7 +26,7 @@ def result(input):
         if len(nums) == 1:
             oxy = int(nums[0], 2)
             break
-    
+
     nums = input
     co2 = None
     for i in range(nbits):

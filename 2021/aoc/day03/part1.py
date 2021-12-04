@@ -8,7 +8,7 @@ def result(input):
                 columns.append([])
             if i == len(columns[j]):
                 columns[j].append(int(ch))
-    
+
     sums = [(sum(col), len(col)) for col in columns]
 
     gamma = ""
@@ -21,7 +21,7 @@ def result(input):
         else:
             gamma += "0"
             epsilon += "1"
-    
+
     gamma = int(gamma, 2)
     epsilon = int(epsilon, 2)
 
