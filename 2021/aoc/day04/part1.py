@@ -1,29 +1,42 @@
 # Advent of Code - Day 4 - Part One
 
-from typing import List, Tuple, Union
+from typing import List, NamedTuple, Tuple, Union
+from colorama import Fore, Style
+
+
+class Cell(NamedTuple):
+    num: int
+    mark: bool
 
 
 class Board:
     def __init__(self, rows: List[List[int]]):
         self.size = len(rows)
-        self.rows = rows
+        self.rows = [list(map(lambda x: Cell(x, False), row)) for row in rows]
 
     def __str__(self) -> str:
-        return "\n".join([" ".join([str(n).rjust(2) for n in row]) for row in self.rows])
+        return "\n".join([" ".join([f"{Fore.GREEN if cell.mark else Fore.RED}{cell.num}{Style.RESET_ALL}".rjust(2) for cell in row]) for row in self.rows])
 
-    def get(self, x: int, y: int) -> Union[int, None]:
+    def get(self, x: int, y: int) -> Union[Cell, None]:
         if y < 0 or y >= self.size:
             return None
         if x < 0 or x >= self.size:
             return None
         return self.rows[y][x]
 
-    def get_row(self, y: int) -> Union[List[int], None]:
+    def set(self, x: int, y: int, cell: Cell):
+        if y < 0 or y >= self.size:
+            return
+        if x < 0 or x >= self.size:
+            return
+        self.rows[y][x] = cell
+
+    def get_row(self, y: int) -> Union[List[Cell], None]:
         if y < 0 or y >= self.size:
             return None
         return self.rows[y]
 
-    def get_col(self, x: int) -> Union[List[int], None]:
+    def get_col(self, x: int) -> Union[List[Cell], None]:
         if x < 0 or x >= self.size:
             return None
         return [row[x] for row in self.rows]
@@ -31,39 +44,33 @@ class Board:
     def find(self, n: int) -> Union[Tuple[int, int], None]:
         for x in range(self.size):
             for y in range(self.size):
-                if self.get(x, y) == n:
+                if self.get(x, y).num == n:
                     return (x, y)
         return None
 
-    def check_win(self, nums: List[int]) -> bool:
-        lastnum = nums[len(nums) - 1]
-        found = self.find(lastnum)
+    def mark(self, n: int) -> Union[int, None]:
+        found = self.find(n)
         if found == None:
-            return False
+            return None
+
         x, y = found
+        cell = self.get(x, y)
+        if cell != None:
+            self.set(x, y, Cell(cell.num, True))
 
-        res = True
-        for n in self.get_col(x):
-            if n not in nums:
-                res = False
-                break
+            if sum([1 if cell.mark else 0 for cell in self.get_col(x)]) == self.size:
+                return self.get_score(n)
 
-        res = True
-        for n in self.get_row(y):
-            if n not in nums:
-                res = False
-                break
+            if sum([1 if cell.mark else 0 for cell in self.get_row(y)]) == self.size:
+                return self.get_score(n)
 
-        return res
+        return None
 
-    def calc_score(self, nums: List[int]) -> int:
-        sum = 0
-        for x in range(self.size):
-            for y in range(self.size):
-                n = self.get(x, y)
-                if n not in nums:
-                    sum += n
-        return sum * nums[len(nums) - 1]
+    def get_score(self, n: int) -> int:
+        cells = sum(self.rows, [])
+        cells = list(filter(lambda cell: not cell.mark, cells))
+        cells = [cell.num for cell in cells]
+        return sum(cells) * n
 
 
 def result(input):
@@ -79,12 +86,10 @@ def result(input):
         board = Board(lines)
         boards.append(board)
 
-    nums: List[int] = []
     for n in rns:
-        nums.append(n)
-
         for board in boards:
-            if board.check_win(nums):
-                return board.calc_score(nums)
+            score = board.mark(n)
+            if score != None:
+                return score
 
     return None
