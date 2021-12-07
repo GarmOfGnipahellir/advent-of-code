@@ -2,20 +2,23 @@
 
 def result(input):
     fish = [int(n) for n in input[0].split(",")]
-    print(fish)
 
     numiter = 80
-
-    for i in range(numiter//7):
-        for j in range(len(fish)):
-            fish.append(8 + fish[j] - 6)
-        print((i + 1) * 7)
-    iterleft = numiter - (numiter//7) * 7
+    values = []
+    tmp = [0]
+    for i in range(numiter):
+        for j in range(len(tmp)):
+            if tmp[j] == 0:
+                tmp[j] = 6
+                tmp.append(8)
+            else:
+                tmp[j] -= 1
+        # print(i, len(tmp), tmp)
+        if i > numiter - 7:
+            values.append(len(tmp))
     
-    for j in range(len(fish)):
-        fish[j] -= iterleft
-        if fish[j] < 0:
-            fish.append(9 + fish[j])
-            fish[j] += 7
+    res = 0
+    for age in fish:
+        res += values[len(values)-age-1]
     
-    return len(fish)
+    return res
