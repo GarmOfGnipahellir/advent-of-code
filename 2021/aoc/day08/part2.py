@@ -52,12 +52,31 @@ class SignalMap:
             else:
                 self[k] = list(filter(lambda ch: ch not in source, self[k]))
 
+    def solve_recursive(self, input: str, indices: List[int]) -> bool:
+        candidates = [DIGITS[i] for i in LENGTHS[len(input)]]
+        mapped = "".join([self[ch][indices[i]] for i, ch in enumerate(input)])
+        if mapped not in candidates:
+            for i in range(len(indices)):
+                if indices[i] < len(list(self.dict.values())[i]) - 1:
+                    indices[i] += 1
+                    return self.solve_recursive(input, indices)
+        return mapped in candidates
+
     def solve_map(self, inputs: List[str]) -> None:
         for inp in inputs:
             l = len(inp)
             for i in LENGTHS[l]:
                 if l == 2 or l == 3 or l == 4 or l == 7:
                     self.solve_digit(inp, DIGITS[i])
+
+        unknowns = filter(lambda x: len(x) > 4 and len(x) != 7, inputs)
+        for inp in unknowns:
+            l = len(inp)
+            for i in LENGTHS[l]:
+                indices = [0 for i in range(len(inp))]
+                if self.solve_recursive(inp, indices):
+                    res = [self[ch][indices[i]] for i, ch in enumerate(inp)]
+                    print(res)
 
         for k, v in self.dict.items():
             print(k, v)

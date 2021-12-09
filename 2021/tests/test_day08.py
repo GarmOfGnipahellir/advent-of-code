@@ -17,7 +17,7 @@ def test_part1():
 def test_signal_map():
     signalmap = part2.SignalMap(
         ["acedgfb", "cdfbe", "gcdfa", "fbcad", "dab", "cefabd", "cdfgeb", "eafb", "cagedb", "ab"])
-    assert "".join(signalmap.dict.values()) == "deafgbc"
+    assert "".join([val[0] for val in signalmap.dict.values()]) == "deafgbc"
 
 
 # def test_part2():
