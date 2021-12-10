@@ -23,7 +23,9 @@ def test_part1():
 
 def test_digit():
     assert Digit("dab") - Digit("ab") == Digit("d")
+    assert len(Digit("abc")) == 3
+    assert Digit("abc") == Digit("cab")
 
 
-# def test_part2():
-#     assert part2.result(read_file("./resources/example.txt")) == 61229
+def test_part2():
+    assert part2.result(read_file("./resources/example.txt")) == 61229
