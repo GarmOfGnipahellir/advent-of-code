@@ -6,7 +6,7 @@ from aoc.day13.__main__ import read_file
 #
 
 def test_part1():
-    assert part1.result(read_file("./resources/example.txt")) == None
+    assert part1.result(read_file("./resources/example.txt")) == 17
 
 #
 # --- Part Two ---
