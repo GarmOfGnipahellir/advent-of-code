@@ -46,23 +46,26 @@ class Graph:
                     self.find_path(path)
                 return
 
-    def find_paths(self, paths: List[List[str]]) -> None:
-        pass
+    def find_paths_helper(self, current: str, path: List[str], paths: List[List[str]]) -> None:
+        path.append(current)
+
+        if current == "end":
+            paths.append([*path])
+        else:
+            for next in self.nodes[current].links:
+                if next.isupper() or next not in path:
+                    self.find_paths_helper(next, path, paths)
+
+        path.pop()
+
+    def find_paths(self) -> List[List[str]]:
+        path = []
+        paths = []
+        self.find_paths_helper("start", path, paths)
+        return paths
 
 
 def result(input):
     graph = Graph(input)
-
-    # cull irrelevant nodes
-    remove = []
-    for node in graph.nodes.values():
-        if len(node.links) <= 1:
-            remove.append(node.name)
-    for name in remove:
-        graph.remove(name)
-
-    path = ["start"]
-    graph.find_path(path)
-    print(path)
-
-    return None
+    paths = graph.find_paths()
+    return len(paths)
