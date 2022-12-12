@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, cell::RefCell, path::Path, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 fn main() {
     println!("01: {}", part01(include_str!("../inputs/07")));
@@ -26,15 +26,6 @@ impl Dir {
             .borrow()
             .iter()
             .find(|&sub_dir| sub_dir.name == name.to_string())
-            .unwrap()
-            .to_owned()
-    }
-
-    fn get_file(&self, name: &str) -> Rc<File> {
-        self.files
-            .borrow()
-            .iter()
-            .find(|&file| file.name == name.to_string())
             .unwrap()
             .to_owned()
     }
@@ -138,24 +129,6 @@ impl FileSystem {
     fn add_file(&self, name: &str, size: usize) {
         let dir = self.get_dir(&self.cwd.borrow());
         dir.files.borrow_mut().push(Rc::new(File::new(name, size)));
-    }
-
-    fn get_file(&self, path: &str) -> Rc<File> {
-        let path = if path.starts_with('/') {
-            let (_, path) = path.split_at(1);
-            path.to_string()
-        } else {
-            format!("{}/{}", self.cwd.borrow(), path)
-        };
-
-        let mut comps = path.split('/');
-        let name = comps.next_back().unwrap();
-        let mut path = comps.collect::<Vec<_>>().join("/");
-        if path.is_empty() {
-            path = "/".to_string();
-        }
-        let dir = self.get_dir(&path);
-        dir.get_file(name)
     }
 }
 
@@ -272,14 +245,6 @@ mod tests {
     fn test_files() {
         let fs = FileSystem::new();
         fs.add_file("f1.txt", 42);
-        assert_eq!(
-            fs.get_file("/f1.txt"),
-            fs.root.borrow().files.borrow()[0].to_owned()
-        );
-        assert_eq!(
-            fs.get_file("f1.txt"),
-            fs.root.borrow().files.borrow()[0].to_owned()
-        );
     }
 
     #[test]
