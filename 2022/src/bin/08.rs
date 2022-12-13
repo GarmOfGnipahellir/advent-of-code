@@ -89,6 +89,48 @@ impl Map {
         res
     }
 
+    fn calc_scenic_scores(&self) -> Vec<i32> {
+        let mut res = vec![0; self.trees.len()];
+        for (i, &tree) in self.trees.iter().enumerate() {
+            let coord = self.index_to_coord(i);
+
+            let mut score_left = 0;
+            for x in (0..coord.x).rev() {
+                score_left += 1;
+                if self.height(Coord::new(x, coord.y)) >= tree {
+                    break;
+                }
+            }
+
+            let mut score_right = 0;
+            for x in coord.x + 1..self.width {
+                score_right += 1;
+                if self.height(Coord::new(x, coord.y)) >= tree {
+                    break;
+                }
+            }
+
+            let mut score_top = 0;
+            for y in (0..coord.y).rev() {
+                score_top += 1;
+                if self.height(Coord::new(coord.x, y)) >= tree {
+                    break;
+                }
+            }
+
+            let mut score_bot = 0;
+            for y in coord.y + 1..self.height {
+                score_bot += 1;
+                if self.height(Coord::new(coord.x, y)) >= tree {
+                    break;
+                }
+            }
+
+            res[i] = score_left * score_right * score_top * score_bot;
+        }
+        res
+    }
+
     fn index_to_coord(&self, i: usize) -> Coord {
         Coord::new(i % self.width, i / self.width)
     }
@@ -128,7 +170,13 @@ fn part01(input: &str) -> i32 {
 }
 
 fn part02(input: &str) -> i32 {
-    unimplemented!()
+    let map = Map::parse(input);
+    print_map(&map.trees, map.width);
+    let mut scores = map.calc_scenic_scores();
+    println!("");
+    print_map(&scores, map.width);
+    scores.sort();
+    *scores.last().unwrap()
 }
 
 #[cfg(test)]
@@ -175,6 +223,6 @@ mod tests {
 65332
 33549
 35390"#;
-        assert_eq!(part02(input), -1);
+        assert_eq!(part02(input), 8);
     }
 }
