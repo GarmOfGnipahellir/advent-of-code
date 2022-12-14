@@ -1,5 +1,3 @@
-use std::{num::ParseIntError, str::FromStr};
-
 fn main() {
     println!("01: {}", part01(include_str!("../inputs/10")));
     println!("02:");
