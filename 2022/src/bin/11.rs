@@ -2,7 +2,6 @@ use std::{cell::RefCell, str::Lines};
 
 fn main() {
     println!("01: {}", part01(include_str!("../inputs/11")));
-    // part02 takes a while 💩
     println!("02: {}", part02(include_str!("../inputs/11")));
 }
 
@@ -206,9 +205,7 @@ fn part02(input: &str) -> usize {
         for (i, monkey) in monkeys.iter().enumerate() {
             for item in &mut monkey.items.borrow_mut().iter_mut() {
                 item.inspect(&monkey.operation);
-                while item.0 > product {
-                    item.0 -= product;
-                }
+                item.0 %= product;
                 inspects[i] += 1;
                 let target = monkey.test.run(item);
                 monkeys[target].items.borrow_mut().push(*item);
