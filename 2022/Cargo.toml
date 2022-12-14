@@ -7,3 +7,5 @@ publish = false
 
 [dependencies]
 regex = "1"
+glam = "0.22"
+crossterm = "0.25"
