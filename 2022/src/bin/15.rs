@@ -54,10 +54,7 @@ struct Map {
 
 impl Map {
     fn parse(s: &str) -> Self {
-        let sensors = s
-            .lines()
-            .map(|line| Sensor::parse(line))
-            .collect::<Vec<_>>();
+        let sensors = s.lines().map(Sensor::parse).collect::<Vec<_>>();
         let beacons = sensors.iter().map(|sensor| sensor.closest_beacon).collect();
         Self { sensors, beacons }
     }
@@ -68,7 +65,7 @@ impl Map {
             .sensors
             .iter()
             .map(|s| s.position)
-            .chain(self.beacons.iter().map(|p| *p))
+            .chain(self.beacons.iter().copied())
             .collect::<Vec<_>>();
         for p in positions {
             min.x = i32::min(p.x, min.x);
@@ -100,11 +97,10 @@ impl Map {
 
     fn can_be_beacon(&self, pos: IVec2) -> bool {
         !self.must_be_empty(pos)
-            && self
+            && !self
                 .sensors
                 .iter()
-                .find(|&s| s.position == pos || s.closest_beacon == pos)
-                .is_none()
+                .any(|s| s.position == pos || s.closest_beacon == pos)
     }
 }
 
@@ -115,13 +111,7 @@ fn part01(input: &str, row: i32) -> i32 {
     let (min, max) = map.min_max();
     (min.x * 10..=max.x * 10)
         .into_par_iter()
-        .map(|x| {
-            if map.must_be_empty(ivec2(x, row)) {
-                1
-            } else {
-                0
-            }
-        })
+        .map(|x| i32::from(map.must_be_empty(ivec2(x, row))))
         .sum()
 }
 
