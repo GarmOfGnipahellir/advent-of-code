@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fmt::Display};
+use std::collections::HashSet;
 
 use glam::{ivec2, IVec2};
 use rayon::prelude::*;
@@ -6,7 +6,7 @@ use regex::Regex;
 
 fn main() {
     println!("01: {}", part01(include_str!("../inputs/15"), 2000000));
-    println!("02: {}", part02(include_str!("../inputs/15")));
+    println!("02: {}", part02(include_str!("../inputs/15"), 4000000));
 }
 
 #[derive(Debug, PartialEq)]
@@ -32,12 +32,24 @@ impl Sensor {
             ),
         }
     }
+
+    fn perimeter(&self) -> HashSet<IVec2> {
+        let closest_delta = self.closest_beacon - self.position;
+        let closest_dist = closest_delta.x.abs() + closest_delta.y.abs() + 1;
+
+        let mut res = HashSet::new();
+        for y in -closest_dist..=closest_dist {
+            let t = (closest_dist + 1) - y.abs() - 1;
+            res.insert(ivec2(-t, y) + self.position);
+            res.insert(ivec2(t, y) + self.position);
+        }
+        res
+    }
 }
 
 struct Map {
     sensors: Vec<Sensor>,
     beacons: Vec<IVec2>,
-    empty: HashSet<IVec2>,
 }
 
 impl Map {
@@ -47,11 +59,7 @@ impl Map {
             .map(|line| Sensor::parse(line))
             .collect::<Vec<_>>();
         let beacons = sensors.iter().map(|sensor| sensor.closest_beacon).collect();
-        Self {
-            sensors,
-            beacons,
-            empty: HashSet::new(),
-        }
+        Self { sensors, beacons }
     }
 
     fn min_max(&self) -> (IVec2, IVec2) {
@@ -61,7 +69,6 @@ impl Map {
             .iter()
             .map(|s| s.position)
             .chain(self.beacons.iter().map(|p| *p))
-            .chain(self.empty.iter().map(|p| *p))
             .collect::<Vec<_>>();
         for p in positions {
             min.x = i32::min(p.x, min.x);
@@ -72,107 +79,64 @@ impl Map {
         (min, max)
     }
 
-    fn calc_empty(&mut self) {
-        // self.empty.clear();
-
-        // let sensor_iter = self.sensors.par_iter().flat_map(|sensor| {
-        //     let closest_delta = sensor.closest_beacon - sensor.position;
-        //     let closest_dist = closest_delta.x.abs() + closest_delta.y.abs();
-
-        //     println!("Calcing sensor...");
-
-        //     (-closest_dist..=closest_dist)
-        //         .into_par_iter()
-        //         .flat_map(|y| {
-        //             (-closest_dist..=closest_dist)
-        //                 .into_par_iter()
-        //                 .map(move |x| ivec2(x, y))
-        //                 .collect::<Vec<_>>()
-        //         })
-        //         .filter_map(|delta| {
-        //             let p = sensor.position + delta;
-        //             let dist = delta.x.abs() + delta.y.abs();
-        //             if dist <= closest_dist
-        //                 && self
-        //                     .sensors
-        //                     .par_iter()
-        //                     .find_any(|&s| s.position == p)
-        //                     .is_none()
-        //                 && !self.beacons.contains(&p)
-        //             {
-        //                 Some(p)
-        //             } else {
-        //                 None
-        //             }
-        //         })
-        //         .collect::<Vec<_>>()
-        // });
-
-        // self.empty.par_extend(sensor_iter);
+    fn must_be_empty(&self, pos: IVec2) -> bool {
+        if self.beacons.contains(&pos) {
+            return false;
+        }
 
         for sensor in &self.sensors {
             let closest_delta = sensor.closest_beacon - sensor.position;
             let closest_dist = closest_delta.x.abs() + closest_delta.y.abs();
 
-            println!("Calcing {sensor:?} {closest_dist}...");
-
-            for y in -closest_dist..=closest_dist {
-                for x in -closest_dist..=closest_dist {
-                    let delta = ivec2(x, y);
-                    let p = sensor.position + delta;
-                    let dist = delta.x.abs() + delta.y.abs();
-                    if dist <= closest_dist
-                        && self.sensors.iter().find(|&s| s.position == p).is_none()
-                        && !self.beacons.contains(&p)
-                    {
-                        self.empty.insert(p);
-                    }
-                }
+            let delta = pos - sensor.position;
+            let dist = delta.x.abs() + delta.y.abs();
+            if dist <= closest_dist {
+                return true;
             }
         }
+
+        false
+    }
+
+    fn can_be_beacon(&self, pos: IVec2) -> bool {
+        !self.must_be_empty(pos)
+            && self
+                .sensors
+                .iter()
+                .find(|&s| s.position == pos || s.closest_beacon == pos)
+                .is_none()
     }
 }
 
-impl Display for Map {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let (min, max) = self.min_max();
-        for y in min.y..=max.y {
-            for x in min.x..=max.x {
-                let p = ivec2(x, y);
-                if self.sensors.iter().find(|&s| s.position == p).is_some() {
-                    write!(f, "S")?;
-                } else if self.beacons.contains(&p) {
-                    write!(f, "B")?;
-                } else if self.empty.contains(&p) {
-                    write!(f, "#")?;
-                } else {
-                    write!(f, ".")?;
-                }
-            }
-            writeln!(f)?;
-        }
-        Ok(())
-    }
-}
-
+// could be optimized further with sensor perimiters
+// kinda like part 02
 fn part01(input: &str, row: i32) -> i32 {
-    let mut map = Map::parse(input);
+    let map = Map::parse(input);
     let (min, max) = map.min_max();
-    println!("{min:?}, {max:?}");
-    map.calc_empty();
-    let (min, max) = map.min_max();
-    println!("{min:?}, {max:?}");
-    let mut res = 0;
-    for x in min.x..=max.x {
-        if map.empty.contains(&ivec2(x, row)) {
-            res += 1;
-        }
-    }
-    res
+    (min.x * 10..=max.x * 10)
+        .into_par_iter()
+        .map(|x| {
+            if map.must_be_empty(ivec2(x, row)) {
+                1
+            } else {
+                0
+            }
+        })
+        .sum()
 }
 
-fn part02(input: &str) -> i32 {
-    unimplemented!()
+fn part02(input: &str, limit: i32) -> usize {
+    let map = Map::parse(input);
+
+    let p = map
+        .sensors
+        .par_iter()
+        .flat_map(|s| s.perimeter())
+        .filter(|p| p.x >= 0 && p.x <= limit && p.y >= 0 && p.y <= limit)
+        .find_any(|p| map.can_be_beacon(*p))
+        .unwrap();
+
+    p.x as usize * 4000000 + p.y as usize
 }
 
 #[cfg(test)]
@@ -200,59 +164,28 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_map() {
-        println!("{}", Map::parse(EXAMPLE));
+    fn test_perimiter_sensor() {
+        let sensor = Sensor {
+            position: IVec2::ZERO,
+            closest_beacon: ivec2(3, 0),
+        };
+        let per = sensor.perimeter();
+        for y in -4..=4 {
+            for x in -4..=4 {
+                let p = ivec2(x, y);
+                if per.contains(&p) {
+                    print!("#");
+                } else {
+                    print!(".");
+                }
+            }
+            println!();
+        }
     }
 
     #[test]
-    fn test_calc_empty_map() {
-        let mut map = Map::parse(EXAMPLE);
-        map.calc_empty();
-        let fmt = format!("{map}");
-        println!("{fmt}");
-        assert_eq!(
-            fmt.trim(),
-            r#"
-..........#..........................
-.........###.........................
-........#####........................
-.......#######.......................
-......#########.............#........
-.....###########...........###.......
-....#############.........#####......
-...###############.......#######.....
-..#################.....#########....
-.###################.#.###########...
-##########S########################..
-.###########################S#######.
-..###################S#############..
-...###################SB##########...
-....#############################....
-.....###########################.....
-......#########################......
-.......#########S#######S#####.......
-........#######################......
-.......#########################.....
-......####B######################....
-.....###S#############.###########...
-......#############################..
-.......#############################.
-.......#############S#######S########
-......B#############################.
-.....############SB################..
-....##################S##########B...
-...#######S######################....
-....############################.....
-.....#############S######S######.....
-......#########################......
-.......#######..#############B.......
-........#####....###..#######........
-.........###......#....#####.........
-..........#.............###..........
-.........................#...........
-"#
-            .trim()
-        );
+    fn test_parse_map() {
+        Map::parse(EXAMPLE);
     }
 
     #[test]
@@ -262,7 +195,7 @@ mod tests {
 
     #[test]
     fn example02() {
-        assert_eq!(part02(EXAMPLE), -1);
+        assert_eq!(part02(EXAMPLE, 20), 56000011);
     }
 
     const EXAMPLE: &str = r#"Sensor at x=2, y=18: closest beacon is at x=-2, y=15
