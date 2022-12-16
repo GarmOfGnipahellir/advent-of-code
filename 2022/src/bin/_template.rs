@@ -17,13 +17,13 @@ mod tests {
 
     #[test]
     fn example01() {
-        let input = r#""#;
-        assert_eq!(part01(input), -1);
+        assert_eq!(part01(EXAMPLE), -1);
     }
 
     #[test]
     fn example02() {
-        let input = r#""#;
-        assert_eq!(part02(input), -1);
+        assert_eq!(part02(EXAMPLE), -1);
     }
+
+    const EXAMPLE: &str = r#""#;
 }
