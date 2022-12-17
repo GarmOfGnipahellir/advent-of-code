@@ -9,4 +9,5 @@ publish = false
 regex = "1"
 glam = "0.22"
 rayon = "1.6"
+petgraph = "0.6"
 crossterm = "0.25"
