@@ -1,6 +1,8 @@
+const INPUT: &str = include_str!("../inputs/01");
+
 fn main() {
-    println!("01: {}", part01(include_str!("../inputs/01")));
-    println!("02: {}", part02(include_str!("../inputs/01")));
+    println!("01: {}", part01(INPUT));
+    println!("02: {}", part02(INPUT));
 }
 
 fn part01(input: &str) -> i32 {
