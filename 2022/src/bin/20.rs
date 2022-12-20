@@ -28,7 +28,7 @@ impl List {
     }
 
     fn value(&self, index: usize) -> i32 {
-        self.source[self.index_map[index]]
+        self.source[self.index_map[index % self.len()]]
     }
 
     fn value_after_zero(&self, index: usize) -> i32 {
@@ -39,7 +39,7 @@ impl List {
             .find_map(|(k, v)| if *v == 0 { Some(k) } else { None })
             .unwrap();
         let zero_index = self.index(zero_source_index);
-        self.value(zero_index + index)
+        self.value(dbg!(zero_index + index))
     }
 
     fn index(&self, source: usize) -> usize {
@@ -51,12 +51,17 @@ impl List {
     }
 
     fn dest(&self, index: usize) -> usize {
-        let offsetted = index as i32 + self.value(index);
-        (if offsetted < 0 {
-            self.len() as i32 - offsetted.abs() - 1
-        } else {
-            offsetted % self.len() as i32
-        }) as usize
+        let mut offsetted = index as i32 + self.value(index);
+        while offsetted < 0 || offsetted >= self.len() as i32 {
+            offsetted = if offsetted < 0 {
+                self.len() as i32 - offsetted.abs() - 1
+            } else if offsetted >= self.len() as i32 {
+                offsetted % self.len() as i32 + 1
+            } else {
+                offsetted
+            };
+        }
+        offsetted as usize
     }
 
     fn move_index(&mut self, source: usize) -> &mut Self {
@@ -65,7 +70,10 @@ impl List {
         }
 
         let index = self.index(source);
-        let dest = self.dest(index);
+        let mut dest = self.dest(index);
+        if dest == 0 {
+            dest = self.len() - 1;
+        }
         let val = self.index_map.remove(index);
         self.index_map.insert(dest, val);
         self
@@ -77,7 +85,17 @@ impl List {
 }
 
 fn part01(input: &str) -> i32 {
-    unimplemented!()
+    let mut list = List::parse(input);
+    for i in 0..list.len() {
+        list.move_index(i);
+    }
+    dbg!([
+        list.value_after_zero(1000),
+        list.value_after_zero(2000),
+        list.value_after_zero(3000),
+    ])
+    .iter()
+    .sum()
 }
 
 fn part02(input: &str) -> i32 {
@@ -123,7 +141,6 @@ mod tests {
         assert_eq!(list.result(), vec![1, 2, 3, -2, -3, 0, 4]);
         list.move_index(3);
         assert_eq!(list.result(), vec![1, 2, -2, -3, 0, 3, 4]);
-        dbg!(list.source[4]);
         list.move_index(4);
         assert_eq!(list.result(), vec![1, 2, -3, 0, 3, 4, -2]);
         list.move_index(5);
@@ -139,17 +156,19 @@ mod tests {
             list.move_index(i);
         }
         assert_eq!(list.value_after_zero(1000), 4);
+        assert_eq!(list.value_after_zero(2000), -3);
+        assert_eq!(list.value_after_zero(3000), 2);
     }
 
     #[test]
     fn example01() {
-        assert_eq!(part01(EXAMPLE), -1);
+        assert_eq!(part01(EXAMPLE), 3);
     }
 
-    #[test]
-    fn example02() {
-        assert_eq!(part02(EXAMPLE), -1);
-    }
+    // #[test]
+    // fn example02() {
+    //     assert_eq!(part02(EXAMPLE), -1);
+    // }
 
     const EXAMPLE: &str = r#"1
 2
