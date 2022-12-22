@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, fmt::Display, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, fmt::Display};
 
 use regex::Regex;
 
@@ -59,15 +59,6 @@ enum Monkey<'a> {
 struct Monkeys<'a>(RefCell<HashMap<&'a str, Monkey<'a>>>);
 
 impl<'a> Monkeys<'a> {
-    fn new() -> Self {
-        Self(RefCell::new(HashMap::new()))
-    }
-
-    fn add(&'a self, id: &'a str, monkey: Monkey<'a>) {
-        self.0.borrow_mut().insert(id, monkey);
-        println!("{self:?}");
-    }
-
     fn get(&'a self, id: &'a str) -> Option<Monkey<'a>> {
         self.0.borrow().get(id).cloned()
     }
@@ -126,7 +117,7 @@ impl<'a> Monkeys<'a> {
                         Monkey::Operation {
                             lhs: "humn",
                             rhs: rid,
-                            op: op.clone(),
+                            op,
                         },
                     );
                 }
@@ -137,7 +128,7 @@ impl<'a> Monkeys<'a> {
                         Monkey::Operation {
                             lhs: lid,
                             rhs: "humn",
-                            op: op.clone(),
+                            op,
                         },
                     );
                 }
@@ -157,7 +148,7 @@ impl<'a> Monkeys<'a> {
                         Monkey::Operation {
                             lhs: lid,
                             rhs: rid,
-                            op: op.clone(),
+                            op,
                         },
                     )
                 }
@@ -173,15 +164,88 @@ fn part01(input: &str) -> i64 {
 fn part02(input: &str) -> i64 {
     let monkeys = Monkeys::parse(input);
     if let Monkey::Operation { lhs, rhs, .. } = monkeys.get("root").unwrap() {
-        println!("{} = {}", monkeys.equation(lhs), monkeys.equation(rhs));
         monkeys.simplify(lhs);
         monkeys.simplify(rhs);
-        println!("{:#?}", monkeys);
         if let Monkey::Operation { lhs, rhs, .. } = monkeys.get("root").unwrap() {
+            // assume lhs contains "humn"
             println!("{} = {}", monkeys.equation(lhs), monkeys.equation(rhs));
+
+            // 3 + humn = 5
+            // humn = 5 - 3
+
+            // 3 - humn = 2
+            // humn = 3 - 2
+
+            // 16 / humn = 8
+            // humn = 16 / 8
+
+            // humn + 3 = 5
+            // humn = 5 - 3
+
+            // humn - 3 = 2
+            // humn = 2 + 3
+
+            // humn / 2 = 8
+            // humn = 8 * 2
+
+            let mut id = lhs;
+            let mut res = monkeys.resolve(rhs);
+            while id != "humn" {
+                if let Monkey::Operation { lhs, rhs, op } = monkeys.get(id).unwrap() {
+                    if lhs == "humn" {
+                        if let Monkey::Literal(x) = monkeys.get(rhs).unwrap() {
+                            res = match op {
+                                Op::Add => res - x,
+                                Op::Sub => res + x,
+                                Op::Mul => res / x,
+                                Op::Div => res * x,
+                            };
+                            id = lhs;
+                            continue;
+                        }
+                        unreachable!()
+                    }
+                    if rhs == "humn" {
+                        if let Monkey::Literal(x) = monkeys.get(lhs).unwrap() {
+                            res = match op {
+                                Op::Add => res - x,
+                                Op::Sub => x - res,
+                                Op::Mul => res / x,
+                                Op::Div => x / res,
+                            };
+                            id = rhs;
+                            continue;
+                        }
+                        unreachable!()
+                    }
+                    if let Monkey::Literal(x) = monkeys.get(lhs).unwrap() {
+                        res = match op {
+                            Op::Add => res - x,
+                            Op::Sub => x - res,
+                            Op::Mul => res / x,
+                            Op::Div => x / res,
+                        };
+                        id = rhs;
+                        continue;
+                    }
+                    if let Monkey::Literal(x) = monkeys.get(rhs).unwrap() {
+                        res = match op {
+                            Op::Add => res - x,
+                            Op::Sub => res + x,
+                            Op::Mul => res / x,
+                            Op::Div => res * x,
+                        };
+                        id = lhs;
+                        continue;
+                    }
+                    unreachable!()
+                }
+                unreachable!()
+            }
+            return res;
         }
     }
-    -1
+    unreachable!()
 }
 
 #[cfg(test)]
@@ -217,8 +281,7 @@ mod tests {
 
     #[test]
     fn example02() {
-        part02(EXAMPLE);
-        // assert_eq!(part02(EXAMPLE), 301);
+        assert_eq!(part02(EXAMPLE), 301);
     }
 
     const EXAMPLE: &str = r#"root: pppw + sjmn
