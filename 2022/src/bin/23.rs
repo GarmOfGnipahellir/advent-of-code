@@ -117,13 +117,34 @@ fn part01(input: &str) -> usize {
         current = do_moves(&current, &moves);
         filters = Vec::from_iter((0..4).map(|i| filters[(i + 1) % 4]));
 
-        print(&current, get_bounds(&current));
+        // print(&current, get_bounds(&current));
     }
     num_empty_in_bounds(&current, get_bounds(&current))
 }
 
-fn part02(input: &str) -> i32 {
-    unimplemented!()
+fn part02(input: &str) -> usize {
+    let initial = parse(input);
+    print(&initial, get_bounds(&initial));
+
+    let mut current = initial;
+    let mut filters = vec![[N, NE, NW], [S, SE, SW], [W, NW, SW], [E, NE, SE]];
+    let mut round = 0;
+    loop {
+        round += 1;
+
+        let proposing = get_proposing(&current);
+        let proposals = get_proposals(&current, &proposing, &filters);
+        let moves = filter_proposals(&proposals);
+        current = do_moves(&current, &moves);
+        filters = Vec::from_iter((0..4).map(|i| filters[(i + 1) % 4]));
+
+        // print(&current, get_bounds(&current));
+
+        if moves.is_empty() {
+            break;
+        }
+    }
+    round
 }
 
 #[cfg(test)]
@@ -163,7 +184,7 @@ mod tests {
 
     #[test]
     fn example02() {
-        assert_eq!(part02(EXAMPLE), -1);
+        assert_eq!(part02(EXAMPLE), 20);
     }
 
     const EXAMPLE: &str = r#"....#..
