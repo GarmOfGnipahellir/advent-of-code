@@ -5,22 +5,37 @@ fn main() {
     println!("02: {}", part02(INPUT));
 }
 
-fn snafu_to_decimal(s: &str) -> i32 {
+fn snafu_to_decimal(s: &str) -> i64 {
     let len = s.len();
     s.chars().enumerate().fold(0, |acc, (i, c)| {
-        let base = 5_i32;
-        let power = (len - i - 1) as i32;
+        let base = 5_i64;
+        let power = (len - i - 1) as i64;
         let factor = match c {
             '-' => -1,
             '=' => -2,
-            _ => c.to_digit(10).unwrap() as i32,
+            _ => c.to_digit(10).unwrap() as i64,
         };
         acc + (base.pow(power as u32) * factor)
     })
 }
 
-fn decimal_to_snafu(x: i32) -> String {
-    let base = 5_i32;
+fn bfs(cur: &str, ans: i64, len: i64) -> Option<String> {
+    if (cur.len() as i64) <= len {
+        ['=', '-', '0', '1', '2']
+            .iter()
+            .map(|c| {
+                let mut next = cur.to_string();
+                next.push(*c);
+                bfs(&next, ans, len)
+            })
+            .find_map(|res| res)
+    } else {
+        (snafu_to_decimal(cur) == ans).then_some(cur.to_string())
+    }
+}
+
+fn decimal_to_snafu(x: i64) -> String {
+    let base = 5_i64;
     let len = {
         let mut i = 0;
         loop {
@@ -30,16 +45,15 @@ fn decimal_to_snafu(x: i32) -> String {
             i += 1;
         }
     };
-    println!("{x} len {len}");
-    todo!()
+    bfs("", x, len).unwrap()
 }
 
 fn part01(input: &str) -> String {
-    let ans: i32 = input.lines().map(|line| snafu_to_decimal(line)).sum();
+    let ans: i64 = input.lines().map(|line| snafu_to_decimal(line)).sum();
     decimal_to_snafu(ans)
 }
 
-fn part02(input: &str) -> i32 {
+fn part02(input: &str) -> i64 {
     unimplemented!()
 }
 
