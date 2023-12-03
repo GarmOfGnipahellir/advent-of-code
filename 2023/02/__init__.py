@@ -11,10 +11,6 @@ Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
 Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
 Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green"""
 
-
-# ---------------------------------- PART 1 ---------------------------------- #
-
-
 HAND_PAT = re.compile(r"(\d+) ((?:red)|(?:green)|(?:blue))")
 
 
@@ -23,6 +19,9 @@ class Bag:
     red: int
     green: int
     blue: int
+
+    def power(self):
+        return self.red * self.green * self.blue
 
 
 @dataclass
@@ -62,6 +61,20 @@ class Game:
                 return False
         return True
 
+    def minbag(self):
+        bag = Bag(0, 0, 0)
+        for hand in self.hands:
+            if hand.red > bag.red:
+                bag.red = hand.red
+            if hand.green > bag.green:
+                bag.green = hand.green
+            if hand.blue > bag.blue:
+                bag.blue = hand.blue
+        return bag
+
+
+# ---------------------------------- PART 1 ---------------------------------- #
+
 
 def part1(inp: str):
     bag = Bag(red=12, green=13, blue=14)
@@ -80,7 +93,12 @@ def part1(inp: str):
 
 
 def part2(inp: str):
-    return
+    sum = 0
+    for line in inp.splitlines():
+        game = Game.parse(line)
+        bag = game.minbag()
+        sum += bag.power()
+    return sum
 
 
 # ---------------------------------------------------------------------------- #
@@ -92,7 +110,7 @@ if __name__ == "__main__":
     with open(path.join(path.dirname(__file__), "in.txt")) as f:
         print(" ", part1(f.read()))
 
-    # print("Part 2:")
-    # print("  EX:", part2(EX2))
-    # with open(path.join(path.dirname(__file__), "in.txt")) as f:
-    #     print(" ", part2(f.read()))
+    print("Part 2:")
+    print("  EX:", part2(EX1))
+    with open(path.join(path.dirname(__file__), "in.txt")) as f:
+        print(" ", part2(f.read()))
