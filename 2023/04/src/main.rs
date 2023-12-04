@@ -30,8 +30,41 @@ fn part1(inp: &str) -> i32 {
         .sum::<i32>()
 }
 
+fn part2(inp: &str) -> i32 {
+    let wins = inp
+        .lines()
+        .map(|line| {
+            let (head, tail) = line.split_once(":").unwrap();
+            let id = head.replace("Card ", "").trim().parse::<i32>().unwrap();
+
+            let (head, tail) = tail.split_once("|").unwrap();
+            let card_nums = head
+                .split_whitespace()
+                .map(|s| s.parse::<i32>().unwrap())
+                .collect::<Vec<_>>();
+            let win_nums = tail
+                .split_whitespace()
+                .map(|s| s.parse::<i32>().unwrap())
+                .collect::<Vec<_>>();
+
+            (id, card_nums, win_nums)
+        })
+        .map(|(_, card, win)| card.iter().filter(|&x| win.contains(x)).count())
+        .collect::<Vec<_>>();
+
+    let mut counts = vec![1; wins.len()];
+    for (i, &x) in wins.iter().enumerate() {
+        for j in i + 1..=i + x {
+            counts[j] += counts[i];
+        }
+    }
+
+    counts.iter().sum()
+}
+
 fn main() {
     println!("Part 1: {}", part1(INP));
+    println!("Part 2: {}", part2(INP));
 }
 
 #[cfg(test)]
@@ -48,5 +81,10 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"#;
     #[test]
     fn test_part1() {
         assert_eq!(part1(EX1), 13);
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(EX1), 30);
     }
 }
