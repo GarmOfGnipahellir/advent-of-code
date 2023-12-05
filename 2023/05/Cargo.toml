@@ -1,0 +1,9 @@
+[package]
+name = "aoc_2023_05"
+version = "0.1.0"
+authors = ["Henrik Melsom"]
+edition = "2021"
+publish = false
+
+[dependencies]
+regex = "1.10.2"
