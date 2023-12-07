@@ -5,4 +5,10 @@ authors = ["Henrik Melsom"]
 edition = "2021"
 publish = false
 
+[[bin]]
+name = "part1"
+
+[[bin]]
+name = "part2"
+
 [dependencies]
