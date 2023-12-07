@@ -4,8 +4,13 @@ fn part1(inp: &str) -> i32 {
     todo!()
 }
 
+fn part2(inp: &str) -> i32 {
+    todo!()
+}
+
 fn main() {
     println!("Part 1: {}", part1(INP));
+    println!("Part 2: {}", part2(INP));
 }
 
 #[cfg(test)]

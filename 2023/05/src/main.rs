@@ -124,7 +124,7 @@ impl Almenac {
                 .unwrap()
                 .get(id);
 
-            if to == "location" {
+            if to == dest_cat {
                 break;
             }
 
