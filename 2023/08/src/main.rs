@@ -57,12 +57,25 @@ impl Graph {
             .unwrap()
     }
 
+    fn with_end(&self, end: char) -> Vec<usize> {
+        self.vertices
+            .iter()
+            .enumerate()
+            .filter_map(|(i, v)| {
+                let last = v.chars().last().unwrap();
+                (end == last).then_some(i)
+            })
+            .collect()
+    }
+
     fn step(&self, from: usize, dir: Direction) -> usize {
         match dir {
             Direction::Left => self.edges[from].0,
             Direction::Right => self.edges[from].1,
         }
     }
+
+    fn find_loop(start: usize, dirs: Vec<Direction>) {}
 }
 
 fn parse_input(inp: &str) -> (Vec<Direction>, Graph) {
@@ -98,12 +111,29 @@ fn part1(inp: &str) -> usize {
 }
 
 fn part2(inp: &str) -> usize {
-    todo!()
+    let (directions, graph) = parse_input(inp);
+    let mut indices = graph.with_end('A');
+    let mut step = 0;
+    loop {
+        indices = indices
+            .into_iter()
+            .map(|idx| graph.step(idx, directions[step % directions.len()]))
+            .collect();
+        step += 1;
+
+        if indices
+            .iter()
+            .all(|idx| graph.vertices[*idx].ends_with('Z'))
+        {
+            break;
+        }
+    }
+    step
 }
 
 fn main() {
     println!("Part 1: {}", part1(INP));
-    // println!("Part 2: {}", part2(INP));
+    println!("Part 2: {}", part2(INP));
 }
 
 #[cfg(test)]
@@ -126,6 +156,18 @@ ZZZ = (ZZZ, ZZZ)
 AAA = (BBB, BBB)
 BBB = (AAA, ZZZ)
 ZZZ = (ZZZ, ZZZ)
+"#;
+
+    const EX3: &str = r#"LR
+
+11A = (11B, XXX)
+11B = (XXX, 11Z)
+11Z = (11B, XXX)
+22A = (22B, XXX)
+22B = (22C, 22C)
+22C = (22Z, 22Z)
+22Z = (22B, 22B)
+XXX = (XXX, XXX)
 "#;
 
     #[test]
@@ -156,6 +198,22 @@ ZZZ = (ZZZ, ZZZ)
     }
 
     #[test]
+    fn test_graph_with_end() {
+        let graph = Graph::parse(
+            r#"11A = (11B, XXX)
+            11B = (XXX, 11Z)
+            11Z = (11B, XXX)
+            22A = (22B, XXX)
+            22B = (22C, 22C)
+            22C = (22Z, 22Z)
+            22Z = (22B, 22B)
+            XXX = (XXX, XXX)"#,
+        );
+        assert_eq!(graph.with_end('A'), vec![0, 3]);
+        assert_eq!(graph.with_end('Z'), vec![2, 6]);
+    }
+
+    #[test]
     fn test_graph_step() {
         let graph = Graph::parse(
             r#"AAA = (BBB, BBB)
@@ -168,6 +226,20 @@ ZZZ = (ZZZ, ZZZ)
         assert_eq!(graph.step(1, Direction::Right), 2);
         assert_eq!(graph.step(2, Direction::Left), 2);
         assert_eq!(graph.step(2, Direction::Right), 2);
+    }
+
+    #[test]
+    fn test_graph_find_loop() {
+        let graph = Graph::parse(
+            r#"11A = (11B, XXX)
+            11B = (XXX, 11Z)
+            11Z = (11B, XXX)
+            22A = (22B, XXX)
+            22B = (22C, 22C)
+            22C = (22Z, 22Z)
+            22Z = (22B, 22B)
+            XXX = (XXX, XXX)"#,
+        );
     }
 
     #[test]
@@ -192,8 +264,7 @@ ZZZ = (ZZZ, ZZZ)
     }
 
     #[test]
-    #[ignore]
     fn test_part2() {
-        assert_eq!(part2(EX1), 0);
+        assert_eq!(part2(EX3), 6);
     }
 }

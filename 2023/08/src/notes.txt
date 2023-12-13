@@ -1,0 +1,29 @@
+LR
+
+11A = (11B, XXX)
+11B = (XXX, 11Z)
+11Z = (11B, XXX)
+22A = (22B, XXX)
+22B = (22C, 22C)
+22C = (22Z, 22Z)
+22Z = (22B, 22B)
+XXX = (XXX, XXX)
+
+0: 11A, 22A
+1: 11B, 22B
+2: 11Z, 22C
+3: 11B, 22Z
+4: 11Z, 22B
+5: 11B, 22C
+6: 11Z, 22Z
+
+0 2, 0 3
+sin(x/2*pi), sin(x/3*pi)
+
+o = 1
+l = 2
+s = 2
+
+1 2 3 4 5 6
+a z a z a z
+a b z a b z
